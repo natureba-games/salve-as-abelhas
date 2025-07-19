@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐝 Salve as Abelhas - Natureba</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .flowers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .flower {
+            position: absolute;
+            font-size: 2rem;
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            font-size: 2rem;
+            color: #2E8B57;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: #FFD700;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #8B4513;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        .timer-warning {
+            background: #FF6347 !important;
+            color: white !important;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        .timer-critical {
+            background: #FF0000 !important;
+            color: white !important;
+            animation: flash 0.3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        @keyframes flash {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .screen-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 9;
+            animation: screenPulse 0.5s;
+        }
+
+        @keyframes screenPulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .game-area {
+            flex-grow: 1;
+            position: relative;
+            margin: 20px 0;
+            min-height: 300px;
+        }
+
+        .bee {
+            position: absolute;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+            animation: fly 2s linear infinite;
+            z-index: 3;
+            user-select: none;
+        }
+
+        .bee:hover {
+            transform: scale(1.2);
+        }
+
+        .bee:active {
+            transform: scale(0.8);
+        }
+
+        @keyframes fly {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .save-effect {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00FF00;
+            animation: saveAnimation 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        @keyframes saveAnimation {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #32CD32, #228B22);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .game-over {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fact {
+            background: linear-gradient(45deg, #FFE4B5, #F0E68C);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 5px solid #DAA520;
+            font-style: italic;
+            color: #8B4513;
+        }
+
+        .crown {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        .start-screen {
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 50px auto;
+            max-width: 400px;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 1.5rem; }
+            .bee { font-size: 2rem; }
+            .game-container { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="sound-toggle" id="soundToggle">🔊</button>
+    <div class="flowers" id="flowers"></div>
+    
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🐝 Salve as Abelhas</h1>
+            <div class="stats">
+                <div class="stat">🐝 Salvas: <span id="saved">0</span></div>
+                <div class="stat" id="timerStat">⏰ Tempo: <span id="timer">60</span>s</div>
+                <div class="stat">🏆 Recorde: <span id="record">0</span></div>
+            </div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <div id="startScreen" class="start-screen">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🐝🌸</div>
+                <h2 style="color: #2E8B57; margin-bottom: 15px;">Missão: Salvar as Abelhas!</h2>
+                <p style="color: #666; margin-bottom: 20px;">As abelhas estão em perigo! Clique nelas rapidamente para salvá-las antes que desapareçam!</p>
+                <div class="fact">
+                    <strong>💡 Você sabia?</strong><br>
+                    Uma abelha visita cerca de 5.000 flores em um único dia!
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="startBtn">🚀 COMEÇAR MISSÃO</button>
+            <button class="btn hidden" id="pauseBtn">⏸️ Pausar</button>
+            <button class="btn hidden" id="restartBtn">🔄 Nova Missão</button>
+        </div>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+        <div class="crown">👑</div>
+        <h2 style="color: #2E8B57; margin-bottom: 15px;">Missão Completa!</h2>
+        <p style="font-size: 1.5rem; margin: 15px 0; color: #FF6B35;">
+            🐝 Você salvou <span id="finalScore">0</span> abelhas!
+        </p>
+        <div id="achievement" class="hidden">
+            <div style="font-size: 2rem; margin: 10px 0;">🏆</div>
+            <p style="color: #DAA520; font-weight: bold;">NOVO RECORDE!</p>
+        </div>
+        <div class="fact" id="endFact">
+            <strong>🌍 Impacto Real:</strong><br>
+            As abelhas polinizam 1/3 de todos os alimentos que consumimos!
+        </div>
+        <button class="btn" onclick="restartGame()">🔄 Salvar Mais Abelhas</button>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function playSound(frequency, duration, type = 'sine', volume = 0.3) {
+            if (!soundEnabled) return;
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch(e) {
+                console.log('Som não disponível');
+            }
+        }
+
+        function playBeeSound() {
+            playSound(150, 0.3, 'sawtooth', 0.2);
+        }
+
+        function playSaveSound() {
+            playSound(800, 0.2, 'sine', 0.4);
+            setTimeout(() => playSound(1000, 0.1, 'sine', 0.3), 50);
+        }
+
+        function playTickSound() {
+            playSound(600, 0.1, 'square', 0.2);
+        }
+
+        function playAlarmSound() {
+            for(let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    playSound(400, 0.1, 'sawtooth', 0.3);
+                    setTimeout(() => playSound(600, 0.1, 'sawtooth', 0.3), 50);
+                }, i * 100);
+            }
+        }
+
+        function playVictorySound() {
+            const notes = [262, 294, 330, 349, 392, 440, 494, 523];
+            notes.forEach((note, i) => {
+                setTimeout(() => playSound(note, 0.2, 'triangle', 0.2), i * 100);
+            });
+        }
+
+        let gameState = {
+            playing: false,
+            paused: false,
+            timeLeft: 60,
+            beesOnScreen: [],
+            score: 0,
+            record: parseInt(localStorage.getItem('beeRecord')) || 0,
+            spawnInterval: null,
+            timerInterval: null,
+            spawnRate: 1000
+        };
+
+        const facts = [
+            "🌸 As abelhas são responsáveis por polinizar 80% das plantas com flores!",
+            "🍯 Uma colmeia pode produzir até 30kg de mel por ano!",
+            "🐝 As abelhas se comunicam através de uma 'dança' especial!",
+            "🌍 Sem abelhas, muitos ecossistemas entrariam em colapso!",
+            "💪 Uma abelha voa até 24km/h e bate as asas 230 vezes por segundo!"
+        ];
+
+        function createFlowers() {
+            const flowersContainer = document.getElementById('flowers');
+            const flowerTypes = ['🌸', '🌺', '🌼', '🌻', '🌷', '🌹'];
+            
+            for (let i = 0; i < 15; i++) {
+                const flower = document.createElement('div');
+                flower.className = 'flower';
+                flower.textContent = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+                flower.style.left = Math.random() * 100 + '%';
+                flower.style.top = Math.random() * 100 + '%';
+                flower.style.animationDelay = Math.random() * 3 + 's';
+                flowersContainer.appendChild(flower);
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('saved').textContent = gameState.score;
+            document.getElementById('timer').textContent = gameState.timeLeft;
+            document.getElementById('record').textContent = gameState.record;
+        }
+
+        function spawnBee() {
+            if (!gameState.playing || gameState.paused) return;
+
+            const gameArea = document.getElementById('gameArea');
+            const bee = document.createElement('div');
+            bee.className = 'bee';
+            bee.textContent = '🐝';
+            
+            const maxX = gameArea.clientWidth - 60;
+            const maxY = gameArea.clientHeight - 60;
+            
+            bee.style.left = Math.random() * Math.max(maxX, 100) + 'px';
+            bee.style.top = Math.random() * Math.max(maxY, 100) + 'px';
+            
+            playBeeSound();
+            
+            bee.addEventListener('click', function() {
+                saveBee(bee);
+            });
+
+            gameArea.appendChild(bee);
+            gameState.beesOnScreen.push(bee);
+
+            const disappearTime = gameState.timeLeft > 20 ? 3000 : 
+                                  gameState.timeLeft > 10 ? 2000 : 1500;
+
+            setTimeout(() => {
+                if (bee.parentNode) {
+                    bee.remove();
+                    gameState.beesOnScreen = gameState.beesOnScreen.filter(b => b !== bee);
+                }
+            }, disappearTime);
+        }
+
+        function saveBee(bee) {
+            gameState.score++;
+            
+            playSaveSound();
+            
+            const effect = document.createElement('div');
+            effect.className = 'save-effect';
+            effect.textContent = '+1 🐝';
+            effect.style.left = bee.style.left;
+            effect.style.top = bee.style.top;
+            
+            document.getElementById('gameArea').appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 1000);
+            
+            bee.remove();
+            gameState.beesOnScreen = gameState.beesOnScreen.filter(b => b !== bee);
+            
+            updateDisplay();
+        }
+
+        function updateTimerEffects() {
+            const timerElement = document.getElementById('timerStat');
+            
+            if (gameState.timeLeft <= 10) {
+                timerElement.classList.add('timer-critical');
+                timerElement.classList.remove('timer-warning');
+                
+                if (gameState.timeLeft <= 10) {
+                    playTickSound();
+                }
+                
+                if (gameState.timeLeft <= 5) {
+                    const flash = document.createElement('div');
+                    flash.className = 'screen-flash';
+                    document.body.appendChild(flash);
+                    setTimeout(() => flash.remove(), 500);
+                    
+                    if (gameState.timeLeft === 5) {
+                        playAlarmSound();
+                    }
+                }
+            } else if (gameState.timeLeft <= 20) {
+                timerElement.classList.add('timer-warning');
+                timerElement.classList.remove('timer-critical');
+            } else {
+                timerElement.classList.remove('timer-warning', 'timer-critical');
+            }
+        }
+
+        function startGame() {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            gameState.playing = true;
+            gameState.paused = false;
+            gameState.timeLeft = 60;
+            gameState.score = 0;
+            gameState.spawnRate = 1000;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('pauseBtn').classList.remove('hidden');
+            document.getElementById('restartBtn').classList.remove('hidden');
+            
+            updateDisplay();
+            
+            gameState.spawnInterval = setInterval(() => {
+                spawnBee();
+            }, gameState.spawnRate);
+            
+            gameState.timerInterval = setInterval(() => {
+                if (!gameState.paused) {
+                    gameState.timeLeft--;
+                    updateDisplay();
+                    updateTimerEffects();
+                    
+                    if (gameState.timeLeft === 30 && gameState.spawnRate > 600) {
+                        gameState.spawnRate = 600;
+                        clearInterval(gameState.spawnInterval);
+                        gameState.spawnInterval = setInterval(spawnBee, gameState.spawnRate);
+                    }
+                    if (gameState.timeLeft === 15 && gameState.spawnRate > 400) {
+                        gameState.spawnRate = 400;
+                        clearInterval(gameState.spawnInterval);
+                        gameState.spawnInterval = setInterval(spawnBee, gameState.spawnRate);
+                    }
+                    
+                    if (gameState.timeLeft <= 0) {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function togglePause() {
+            gameState.paused = !gameState.paused;
+            document.getElementById('pauseBtn').textContent = gameState.paused ? '▶️ Continuar' : '⏸️ Pausar';
+        }
+
+        function endGame() {
+            gameState.playing = false;
+            
+            clearInterval(gameState.spawnInterval);
+            clearInterval(gameState.timerInterval);
+            
+            gameState.beesOnScreen.forEach(bee => bee.remove());
+            gameState.beesOnScreen = [];
+            
+            playVictorySound();
+            
+            const isNewRecord = gameState.score > gameState.record;
+            if (isNewRecord) {
+                gameState.record = gameState.score;
+                localStorage.setItem('beeRecord', gameState.record);
+                document.getElementById('achievement').classList.remove('hidden');
+            } else {
+                document.getElementById('achievement').classList.add('hidden');
+            }
+            
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('gameOver').classList.remove('hidden');
+            
+            const randomFact = facts[Math.floor(Math.random() * facts.length)];
+            document.getElementById('endFact').innerHTML = '<strong>🌟 Curiosidade:</strong><br>' + randomFact;
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('restartBtn').classList.add('hidden');
+            
+            document.getElementById('timerStat').classList.remove('timer-warning', 'timer-critical');
+            
+            updateDisplay();
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+            
+            if (soundEnabled && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        document.getElementById('soundToggle').addEventListener('click', toggleSound);
+
+        createFlowers();
+        updateDisplay();
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+    </script>
+</body>
+</html>
